@@ -172,6 +172,6 @@ Documentation:
 
 ## See Also
 
-- [Native Sandboxing Guide](../../guide/sandbox-native.md) - Complete technical reference
+- [Native Sandboxing Guide](../../guide/security/sandbox-native.md) - Complete technical reference
 - [Sandbox Validation Hook](../hooks/bash/sandbox-validation.sh) - Pre-command validation
 - [Sandbox Config Example](../config/sandbox-native.json) - Production-ready settings

@@ -233,4 +233,4 @@ After `/plan-validate` confirms all issues are resolved. Never skip validation â
 
 - [Plan-Validate-Execute Pipeline](../../guide/workflows/plan-pipeline.md)
 - [Git Worktree Command](./git-worktree.md)
-- [TDD with Claude](../guide/workflows/tdd-with-claude.md)
+- [TDD with Claude](../../guide/workflows/tdd-with-claude.md)
