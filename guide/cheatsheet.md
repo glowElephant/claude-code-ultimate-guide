@@ -159,10 +159,9 @@ tags: [cheatsheet, reference]
 ├── settings.json       # Hooks (committed)
 ├── settings.local.json # Permissions (not committed)
 ├── agents/             # Custom agents
-├── commands/           # Slash commands
 ├── hooks/              # Event scripts
 ├── rules/              # Auto-loaded rules
-└── skills/             # Knowledge modules
+└── skills/             # Slash commands + knowledge modules (unified)
 ```
 
 ---
@@ -360,11 +359,12 @@ tools: Read, Write, Edit, Bash
 # Instructions here
 ```
 
-### Command (`.claude/commands/my-command.md`)
+### Skill — user-invocable (`.claude/skills/my-command/SKILL.md`)
 ```markdown
 ---
 description: Brief description
 argument-hint: "<required_arg> [--flag]"
+disable-model-invocation: true
 ---
 # Command Name
 Instructions for what to do...
