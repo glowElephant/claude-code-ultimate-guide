@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Documentation
+
+- **Claude Code Releases**: Updated tracking to v2.1.144 (2026-05-19)
+  - /resume now lists background sessions alongside interactive ones, marked with `bg`
+  - /model is now session-only by default; press `d` in picker to set default for new sessions
+  - "extra usage" renamed to "usage credits"; `/extra-usage` → `/usage-credits` (old name still works)
+  - Fixed 75s startup hang on unreachable `api.anthropic.com` (now 15s timeout)
+  - Terminal rendering corruption self-heals; macOS Full Disk Access crash fixed (regression in 2.1.143)
+  - MCP paginated `tools/list` now returns all pages; 40+ additional bug fixes
+
 ### Changed
 
 - **Commands migrated to skills — redirect stubs + full reference update**: All 51 files in `examples/commands/` are now redirect stubs pointing to their canonical `examples/skills/<name>/SKILL.md` equivalents, following the Claude Code 2.1.3 skills-commands unification. Existing GitHub URLs remain valid. `threat-db.yaml` copied to `examples/skills/update-threat-db/threat-db.yaml` (original kept until MCP server Chantier 2). Updated `machine-readable/reference.yaml` (26 keys), `llms.txt`, `machine-readable/llms.txt`, `README.md`, `scripts/install-templates.sh` (install_command → install_skill redirect + subdir format), `scripts/check-landing-sync.sh` (excludes stubs from template count), `scripts/generate-template-catalog.py`, `scripts/resync-reference-yaml.py`. New script: `scripts/generate-command-stubs.py` (idempotent stub generator). Landing `cc.bruniaux.com`: updated `guide-search-entries.ts` (26 deep links), `learning/index.astro`, `security-data.ts`, `guide-content-entries.ts`, and all template count references (181 → 255). Remaining in Chantier 2: MCP server rebuild + threat-db.yaml original deletion. Remaining in Chantier 3: guide prose, quiz YAML, whitepapers, and `.claude/` internal paths.
