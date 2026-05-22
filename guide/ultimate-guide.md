@@ -1071,21 +1071,59 @@ Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` 
 
 Use for restrictive workflows where you want tight control over which tools run, without interactive confirmation.
 
-### Auto Mode (Max subscribers, v2.1.114+)
+### Auto Mode (all plans, v2.1.114+)
 
-Auto mode lets Claude make permission decisions on your behalf during long-running tasks. Instead of stopping every time a risky action needs approval, Claude applies its own judgment — and you review the result rather than approving each step.
-
-```
-# Enable via settings.json
-{ "permissionMode": "auto" }
-```
-
-Unlike `bypassPermissions` (which approves blindly), auto mode uses a classifier to evaluate each action. `PermissionDenied` hooks fire when the classifier blocks something, giving you visibility into what was declined. Designed for long tasks with fewer interruptions and less risk than skipping all permissions.
-
-**Hard deny rules** (`settings.autoMode.hard_deny`, v2.1.136): Auto mode's classifier can be supplemented with unconditional block rules that fire before the classifier and cannot be overridden by user intent or allow exceptions:
+Auto mode delegates permission decisions to a dedicated classifier model. Instead of stopping to ask for approval on each action, a second AI instance running Sonnet 4.6 evaluates every tool call before it executes. Safe actions proceed automatically; risky ones are blocked, and Claude receives the reason so it can try a different approach.
 
 ```json
 // .claude/settings.json
+{ "permissionMode": "auto" }
+```
+
+**Two layers of defense**
+
+Auto mode runs two parallel checks on everything Claude touches:
+
+1. **Input probe**: Before any content enters Claude's context (file reads, web fetches, shell output, MCP responses), a server-side probe scans for prompt injection. When it detects suspicious instructions, it adds a warning to Claude's context rather than silently filtering, so Claude knows that content may be trying to manipulate it.
+2. **Transcript classifier** (Sonnet 4.6): Evaluates each tool call against three risk categories before execution. The classifier sees user messages and Claude's pending tool calls only; tool outputs and Claude's own reasoning are stripped to prevent reasoning manipulation.
+
+The three categories the classifier checks:
+
+| Category | What it looks for |
+|----------|------------------|
+| Scope escalation | Claude doing more than the task asked for |
+| Untrusted infrastructure | Action targeting a host, API, or system not recognized from context |
+| Prompt injection | Action appearing driven by hostile content Claude read from a file, repo, or web page |
+
+**Performance and limits**
+
+Anthropic's production traffic measurements: 94% of dangerous operations correctly identified, 2% of safe operations falsely flagged, 17% false negative rate (FNR).
+
+An independent stress-test ([arXiv 2604.04978](https://arxiv.org/abs/2604.04978)) targeting scope escalation specifically found 81% FNR end-to-end (CI: 73.8%–87.4%). Even restricting to actions the classifier actually evaluates, the FNR was 70.3%. A key structural gap: in-project file edits are exempt from classification by design, which produced a 92.9% FNR on artifact cleanup tasks when agents fell back to the Edit tool. These are adversarial benchmarks against the authorization boundary, not production averages, but they establish the real ceiling: auto mode is a friction reducer, not a security boundary.
+
+**Escalation and visual feedback**
+
+If the classifier blocks Claude 3 consecutive times, or 20 times total in a session, auto mode falls back to a manual permission prompt to break the loop. During a check, the status spinner turns red, so you can distinguish a classifier stall from a running tool.
+
+**Configuring classifier rules**
+
+The `autoMode` key lets you extend built-in rules using the `"$defaults"` sentinel. Include it to add your rules alongside the defaults; omit it to replace the entire built-in list:
+
+```json
+{
+  "autoMode": {
+    "allow": ["$defaults", "Bash(git log:*)", "Bash(cat:*)"],
+    "soft_deny": ["$defaults", "Bash(curl:*)"],
+    "environment": ["$defaults", "production-db"]
+  }
+}
+```
+
+**Hard deny rules** (`settings.autoMode.hard_deny`, v2.1.136)
+
+Unconditional block rules that fire before the classifier and cannot be overridden by user intent or allow exceptions:
+
+```json
 {
   "autoMode": {
     "hard_deny": [
@@ -1097,9 +1135,21 @@ Unlike `bypassPermissions` (which approves blindly), auto mode uses a classifier
 }
 ```
 
-Unlike classifier rules (which weigh user intent), `hard_deny` entries are absolute. Use them for operations that must never be auto-approved regardless of context: production destructive commands, credential files, system config paths.
+Unlike classifier rules (which weigh context and user intent), `hard_deny` entries are absolute. Use them for operations that must never run unattended: destructive commands, credential files, system config paths.
 
-**Requirements**: Max plan subscription. Available as of v2.1.114.
+**When to use auto mode**
+
+| Context | Verdict | Notes |
+|---------|---------|-------|
+| Isolated container or VM, no production credentials | Go | The intended use case |
+| Background Dispatch jobs | Go | No human present to confirm; auto mode is required |
+| Local dev machine, personal project, read-only branch | OK | Low stakes; use version control as backstop |
+| Staging environment with real data | Caution | Limit credentials to read-only; ensure backups |
+| Production, PII, financial data, compliance scope | No | Use default mode or `dontAsk` with an explicit allowlist |
+
+For team use: keep audit logs of auto-approved actions, set a distinct git committer identity for Claude commits so you can trace them, and review Claude's commits before merging.
+
+**Requirements**: All plans (Max subscribers gained seamless access at v2.1.111; all plans at v2.1.114). Team and Enterprise require admin enablement in Claude Code admin settings. Cost and latency are slightly higher than other modes since a second model runs on every tool call.
 
 ### Bypass Permissions Mode (`bypassPermissions`)
 

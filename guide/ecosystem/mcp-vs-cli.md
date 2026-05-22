@@ -124,6 +124,37 @@ Quick reference — not rules, but directional defaults.
 
 ---
 
+## Per-server recommendation
+
+The table below applies the four decision dimensions to the 18 most commonly discussed MCP servers. "Verdict" is the default for a developer using a frontier model on a local machine. Your context (non-technical users, enterprise observability, or a smaller model) may shift any row toward MCP.
+
+| MCP Server | Verdict | CLI Alternative | Reason |
+|------------|---------|-----------------|--------|
+| GitHub MCP | **Use CLI** | `gh` | `gh` covers the full API surface; model knows it from training; official GitHub MCP was archived |
+| GitLab MCP | **Use CLI** | `glab` | Official CLI is richer than the MCP wrapper; practitioner consensus confirms |
+| Git MCP (Anthropic) | **Use CLI** | `git` | Git is the CLI the model knows best; MCP schema adds cost without structural benefit on frontier models |
+| Filesystem MCP | **Use CLI** | `cat`, `ls`, `find` | Shell commands are universal; no benefit from schema overhead |
+| Docker MCP | **Use CLI** | `docker` | Docker CLI is universally known; no widely adopted MCP adds comparable value |
+| AWS MCP | **Use CLI** | `aws-cli` | aws-cli v2 covers the full surface; model drives it natively from training knowledge |
+| Terraform MCP | **Use CLI** | `terraform` | Deterministic plan/apply workflow; CLI output is structured and auditable |
+| Semgrep MCP | **Use CLI** | `semgrep` | Mature CLI, well-documented; MCP adds value mainly in CI/CD observability contexts |
+| Playwright MCP | **Depends** | `playwright-cli` + skill | Frontier model: CLI + skill is faster. Smaller model: MCP structures browser interaction reliably |
+| Kubernetes MCP | **Depends** | `kubectl` | Auth complexity and multi-cluster setups favor MCP; simple operations favor kubectl |
+| Vercel MCP | **Depends** | `vercel` CLI | CLI for deploy, env, and domains; MCP for dashboard integration and team workflow comments |
+| Sentry MCP | **Use MCP** | none (API only) | No official CLI for issue querying; MCP provides structured error triage and Sentry query syntax |
+| Slack MCP | **Use MCP** | none | OAuth required; no practical CLI for workspace access from an agent |
+| Notion MCP | **Use MCP** | none | OAuth required; API-key access is limited to integrations, not user-scoped workspace access |
+| Google Drive MCP | **Use MCP** | none | OAuth 2.1 with refresh token rotation; cannot be replicated by a skill or CLI |
+| Figma MCP | **Use MCP** | none | OAuth required; design file access has no CLI equivalent |
+| Linear MCP | **Use MCP** | none | MCP handles GraphQL complexity; structured project management without raw API calls |
+| Context7 MCP | **Use MCP** | none | No CLI equivalent for curated, version-specific doc retrieval |
+
+The pattern: if the service has a mature CLI the model knows from training, use the CLI. If the service requires OAuth or has no CLI, use MCP. "Depends" means the decision hinges on model capability or specific workflow needs.
+
+> Take the interactive quiz (6 questions, under 1 minute): [cc.bruniaux.com/mcp-or-cli/](https://cc.bruniaux.com/mcp-or-cli/)
+
+---
+
 ## The hybrid is the default
 
 Most production workflows don't choose one. They use both, with each covering the layer it handles best.

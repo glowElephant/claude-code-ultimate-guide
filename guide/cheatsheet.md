@@ -126,6 +126,7 @@ tags: [cheatsheet, reference]
 | Default | Asks | Asks |
 | acceptEdits | Auto | Asks |
 | Plan Mode | ❌ | ❌ |
+| auto | Classifier decides | Classifier decides |
 | dontAsk | Only if in allow rules | Only if in allow rules |
 | bypassPermissions | Auto | Auto (CI/CD only) |
 
